@@ -1,12 +1,20 @@
 <?php
-$host = 'db';
-$user = 'root';
-$pass = 'password_varo';
-$db   = 'db_devops';
+// Mengambil data dari Environment Variables Railway, atau pakai default lokal jika tidak ada
+$host = getenv('MYSQLHOST') ?: (getenv('DB_HOST') ?: 'db');
+$user = getenv('MYSQLUSER') ?: (getenv('DB_USER') ?: 'root');
+$pass = getenv('MYSQLPASSWORD') ?: (getenv('DB_PASS') ?: 'password_varo');
+$db   = getenv('MYSQLDATABASE') ?: (getenv('DB_NAME') ?: 'db_devops');
+$port = getenv('MYSQLPORT') ?: '3306';
 
-$conn = new mysqli($host, $user, $pass, $db);
+// Koneksi ke Database menggunakan variabel di atas
+$conn = new mysqli($host, $user, $pass, $db, $port);
 
-// Cek koneksi dan buat tabel jika belum ada
+// Cek koneksi agar tidak crash tanpa pesan
+if ($conn->connect_error) {
+    die("Koneksi Database Gagal: " . $conn->connect_error);
+}
+
+// Buat tabel jika belum ada
 $conn->query("CREATE TABLE IF NOT EXISTS buku_tamu (id INT AUTO_INCREMENT PRIMARY KEY, nama VARCHAR(50), pesan TEXT, waktu TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
 
 // Logika saat user menekan tombol "Kirim"
@@ -16,7 +24,8 @@ if (isset($_POST['kirim'])) {
     if (!empty($nama)) {
         $conn->query("INSERT INTO buku_tamu (nama, pesan) VALUES ('$nama', '$pesan')");
     }
-    header("Location: index.php"); // Refresh halaman
+    header("Location: index.php"); 
+    exit();
 }
 
 // Ambil data pengunjung
