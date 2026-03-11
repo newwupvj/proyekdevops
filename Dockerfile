@@ -1,8 +1,5 @@
-# Gunakan image Nginx versi ringan (Alpine) sebagai dasar
-FROM nginx:alpine
-
-# Salin file website Anda dari laptop ke dalam folder server di kontainer
-COPY . /usr/share/nginx/html
-
-# Beritahu Docker bahwa kontainer ini akan berjalan di port 80
-EXPOSE 80
+FROM php:8.2-apache
+# Install ekstensi MySQL untuk PHP
+RUN docker-php-ext-install mysqli
+# Copy semua file ke folder web server
+COPY . /var/www/html/

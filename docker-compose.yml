@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  # 1. Kontainer Website (PHP + Apache)
+  web:
+    build: .
+    ports:
+      - "8888:80"
+    depends_on:
+      - db
+
+  # 2. Kontainer Database (MySQL)
+  db:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_DATABASE: 'db_devops'
+      MYSQL_ROOT_PASSWORD: 'password_varo'
+    ports:
+      - "3306:3306"
+    volumes:
+      # Ini adalah 'kabel' yang menghubungkan data di kontainer ke hardisk laptop Anda
+      - mysql_data:/var/lib/mysql
+
+# Mendefinisikan tempat penyimpanan data yang 'abadi'
+volumes:
+  mysql_data:
