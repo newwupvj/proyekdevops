@@ -1,35 +1,33 @@
 <?php
-// Mengambil data dari Environment Variables Railway, atau pakai default lokal jika tidak ada
-$host = getenv('MYSQLHOST') ?: (getenv('DB_HOST') ?: 'db');
-$user = getenv('MYSQLUSER') ?: (getenv('DB_USER') ?: 'root');
-$pass = getenv('MYSQLPASSWORD') ?: (getenv('DB_PASS') ?: 'password_varo');
-$db   = getenv('MYSQLDATABASE') ?: (getenv('DB_NAME') ?: 'db_devops');
-$port = getenv('MYSQLPORT') ?: '3306';
+require __DIR__ . '/config.php';
 
-// Koneksi ke Database menggunakan variabel di atas
-$conn = new mysqli($host, $user, $pass, $db, $port);
+$conn = get_database_connection();
 
-// Cek koneksi agar tidak crash tanpa pesan
-if ($conn->connect_error) {
-    die("Koneksi Database Gagal: " . $conn->connect_error);
-}
+$conn->query(
+    'CREATE TABLE IF NOT EXISTS buku_tamu (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        nama VARCHAR(50) NOT NULL,
+        pesan TEXT,
+        waktu TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )'
+);
 
-// Buat tabel jika belum ada
-$conn->query("CREATE TABLE IF NOT EXISTS buku_tamu (id INT AUTO_INCREMENT PRIMARY KEY, nama VARCHAR(50), pesan TEXT, waktu TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
-
-// Logika saat user menekan tombol "Kirim"
 if (isset($_POST['kirim'])) {
-    $nama = $conn->real_escape_string($_POST['nama']);
-    $pesan = $conn->real_escape_string($_POST['pesan']);
+    $nama = trim((string) ($_POST['nama'] ?? ''));
+    $pesan = trim((string) ($_POST['pesan'] ?? ''));
+
     if (!empty($nama)) {
-        $conn->query("INSERT INTO buku_tamu (nama, pesan) VALUES ('$nama', '$pesan')");
+        $statement = $conn->prepare('INSERT INTO buku_tamu (nama, pesan) VALUES (?, ?)');
+        $statement->bind_param('ss', $nama, $pesan);
+        $statement->execute();
+        $statement->close();
     }
-    header("Location: index.php"); 
+
+    header('Location: index.php');
     exit();
 }
 
-// Ambil data pengunjung
-$tamu = $conn->query("SELECT * FROM buku_tamu ORDER BY waktu DESC LIMIT 5");
+$tamu = $conn->query('SELECT nama, pesan, waktu FROM buku_tamu ORDER BY waktu DESC LIMIT 5');
 ?>
 
 <!DOCTYPE html>
@@ -46,8 +44,8 @@ $tamu = $conn->query("SELECT * FROM buku_tamu ORDER BY waktu DESC LIMIT 5");
         <div class="card">
             <h3>Isi Buku Tamu:</h3>
             <form method="POST">
-                <input type="text" name="nama" placeholder="Nama Kamu" required><br>
-                <textarea name="pesan" placeholder="Pesan singkat..."></textarea><br>
+                <input type="text" name="nama" placeholder="Nama Kamu" maxlength="50" required><br>
+                <textarea name="pesan" placeholder="Pesan singkat..." maxlength="500"></textarea><br>
                 <button type="submit" name="kirim">Kirim ke Database</button>
             </form>
         </div>
@@ -58,9 +56,9 @@ $tamu = $conn->query("SELECT * FROM buku_tamu ORDER BY waktu DESC LIMIT 5");
         <ul class="list-tamu">
             <?php while($row = $tamu->fetch_assoc()): ?>
                 <li>
-                    <strong><?php echo $row['nama']; ?></strong>: 
-                    "<?php echo $row['pesan']; ?>" 
-                    <br><small><?php echo $row['waktu']; ?></small>
+                    <strong><?= htmlspecialchars($row['nama'], ENT_QUOTES, 'UTF-8') ?></strong>:
+                    &quot;<?= htmlspecialchars($row['pesan'], ENT_QUOTES, 'UTF-8') ?>&quot;
+                    <br><small><?= htmlspecialchars($row['waktu'], ENT_QUOTES, 'UTF-8') ?></small>
                 </li>
             <?php endwhile; ?>
         </ul>
