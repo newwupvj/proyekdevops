@@ -69,13 +69,13 @@ $conn->close();
         <main>
             <section id="home" class="hero">
                 <div class="hero-copy">
-                    <p class="availability"><span></span> AVAILABLE FOR VISITORS</p>
+                    <p class="availability"><span></span> AVAILABLE FOR WORK</p>
                     <h1><span>DevOps</span><span class="title-muted">Project</span></h1>
-                    <p class="role">Interactive Guestbook_</p>
-                    <p class="intro">Sebuah proyek web sederhana yang menghubungkan PHP, MySQL, dan Docker. Tinggalkan pesan dan lihat bagaimana data tersimpan di dalam sistem.</p>
+                    <p class="role">Information System_</p>
+                    <p class="intro">Aplikasi buku tamu berbasis PHP dan MySQL yang dikemas dengan Docker. Jelajahi proyek, lihat status sistem, dan tinggalkan pesan di bawah.</p>
                     <div class="tags"><span>PHP</span><span>MySQL</span><span>Docker</span><span>CI/CD</span></div>
                     <div class="hero-actions">
-                        <a class="button button-light" href="#guestbook">Lihat buku tamu <span>→</span></a>
+                        <a class="button button-light" href="#guestbook">Lihat project <span>→</span></a>
                         <a class="button button-dark" href="health.php">Status sistem</a>
                     </div>
                     <p class="scroll-hint">↓ <span>explore the project below</span></p>
@@ -172,6 +172,17 @@ $conn->close();
             search.dispatchEvent(new Event('input'));
             search.focus();
         });
+
+        const sections = [...document.querySelectorAll('main section[id]')];
+        const navLinks = [...document.querySelectorAll('nav a')];
+        const updateActiveNav = () => {
+            const current = sections
+                .filter((section) => window.scrollY + 180 >= section.offsetTop)
+                .pop()?.id || 'home';
+            navLinks.forEach((link) => link.classList.toggle('active', link.getAttribute('href') === `#${current}`));
+        };
+        window.addEventListener('scroll', updateActiveNav, { passive: true });
+        updateActiveNav();
     </script>
 </body>
 </html>
